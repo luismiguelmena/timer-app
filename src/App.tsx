@@ -1,24 +1,11 @@
 import React, {useState,useEffect} from 'react';
 import './App.css';
 import Button from '@mui/material/Button';
-import Switch from 'react-switch';
 import styled, { ThemeProvider } from 'styled-components';
-import Bedtime from '@mui/icons-material/Bedtime';
-import WbSunny from '@mui/icons-material/WbSunny';
-
-const LightTheme = {
-  pageBackground: '#DEE7E2',
-  buttonBg:'#3E4843',
-  textColor: '#DEE7E2',
-  crono: '#3E4843'
-};
-
-const DarkTheme = {
-  pageBackground: '#3E4843',
-  buttonBg:'#DEE7E2',
-  textColor: '#3E4843',
-  crono: '#DEE7E2'
-}
+import { LightTheme,DarkTheme } from './themes/themes';
+import SwitchContainer from './components/SwitchContainer/SwitchContainer';
+import PlayArrow from '@mui/icons-material/PlayArrow';
+import changeMode from './utils/changeMode';
 
 const themes:any = {
   light: LightTheme,
@@ -27,73 +14,44 @@ const themes:any = {
 
 function App() {
 
-  const [diff,setDiff]:any = useState(null)
-  const [initial,setInitial]:any = useState(null)
   const [checked,setChecked] = useState(false)
   const [theme, setTheme]:any = useState('dark')
+  const [data,setData]:any = useState([])
+  const [time, setTime] = useState(0);
+  const [timerOn, setTimerOn] = useState(false);
 
-  const tick = () => {
-    setDiff(new Date(+new Date()-initial))
-  }
-
-  const start = () => setInitial(+new Date())
-
-  useEffect(()=>{
-    if(initial){
-      requestAnimationFrame(tick)
+  useEffect(() => {
+    let interval:any = null;
+    if (timerOn) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime + 10);
+      }, 10);
+    } else if (!timerOn) {
+      clearInterval(interval);
     }
-  },[initial])
-  
-  useEffect(()=>{
-    if(diff){
-      requestAnimationFrame(tick)
-    }
-  },[diff])
+    return () => clearInterval(interval);
+  }, [timerOn]);
 
-  const changeMode = () => {
-    setChecked(!checked)
-    if (theme === "light") {
-        setTheme("dark");
-    } else {
-        setTheme("light");
-    }
-  }
-
-  const timeFormat = (date:Date) => {
-    if(!date) return '00:00:00'
-
-    let mm:any = date.getUTCMinutes()
-    let ss:any= date.getSeconds()
-    let cm:any = Math.round(date.getMilliseconds()/10)
-
-    mm = mm < 10 ? '0' + mm : mm
-    ss = ss < 10 ? '0' + ss : ss
-    cm = cm < 10 ? '0' + cm : cm
-
-    return `${mm}:${ss}:${cm}`  
+  const getTime = (time:any) => {
+    return `${("0" + Math.floor((time / 60000) % 60)).slice(-2)}:${("0" + Math.floor((time / 1000) % 60)).slice(-2)}:${("0" + ((time / 10) % 100)).slice(-2)}`
   }
 
   return (
     <ThemeProvider theme={themes[theme]}>
-      {/* <Splash theme={theme} setTheme={setTheme} /> */}
       <Main>
-        <div>
-          <div style={{float:'right'}}>
-            <Bedtime sx={{ color: themes[theme].buttonBg }}/>
-            <Switch onChange={changeMode} checked={checked} uncheckedIcon={false} checkedIcon={false}/>
-            <WbSunny sx={{ color: themes[theme].buttonBg }} />
-          </div>
-          
-        </div>
-        
-        <Timer style={{height:'100%',display:'flex',justifyContent:'center',alignItems:'center'}}>
-          <div>
-          <Button variant="contained" color="primary" startIcon onClick={start} sx={{ backgroundColor: themes[theme].buttonBg,color:themes[theme].textColor}}>
-            {timeFormat(diff)}
+        <SwitchContainer theme={themes[theme]} changeMode={()=>{changeMode(setChecked,checked,theme,setTheme)}} checked={checked}/>
+        <Timer>
+          {data.map((checkpoint:string) => <CheckPoints>{checkpoint}</CheckPoints>)}
+          <Button size="large" variant="contained" color="primary" startIcon={<PlayArrow/>} onClick={()=>{
+            if(time!==0){
+              setData([...data,getTime(time)])
+            }
+            setTime(0)
+            setTimerOn(!timerOn)
+          }} sx={{ backgroundColor: themes[theme].buttonBg,color:themes[theme].textColor}}>
+            {getTime(time)}
           </Button>
-          </div>
         </Timer>
-        
       </Main>
     </ThemeProvider>
   );
@@ -104,11 +62,18 @@ const Main = styled.div`
   background-color: ${props => props.theme.pageBackground};
   transition: all .5s ease;
 `;
+
+const CheckPoints = styled.h1`
+  font-size:3em;
+  margin:10px;
+  color:${props => props.theme.crono};
+`;
 const Timer = styled.div`
+  flex-direction:column;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 80%;
   width: 100%;
   background-color: ${props => props.theme.pageBackground};
   transition: all .5s ease;
