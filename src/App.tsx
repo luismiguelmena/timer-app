@@ -6,6 +6,8 @@ import { LightTheme,DarkTheme } from './themes/themes';
 import SwitchContainer from './components/SwitchContainer/SwitchContainer';
 import PlayArrow from '@mui/icons-material/PlayArrow';
 import changeMode from './utils/changeMode';
+import getTotalTime from './services/getData';
+import putTime from './services/putData';
 
 const themes:any = {
   light: LightTheme,
@@ -15,10 +17,20 @@ const themes:any = {
 function App() {
 
   const [checked,setChecked] = useState(false)
-  const [theme, setTheme]:any = useState('dark')
-  const [data,setData]:any = useState([])
+  const [theme, setTheme]:any= useState('dark')
   const [time, setTime] = useState(0);
   const [timerOn, setTimerOn] = useState(false);
+  const [acumulated,setAcumulated]:any = useState()
+  
+  const getTotal = async () => {
+    let total = await getTotalTime()
+    let prueba = await total
+    setAcumulated(prueba.data.data.time)
+  }
+  
+  useEffect(() => {
+    getTotal()
+  }, [time])
 
   useEffect(() => {
     let interval:any = null;
@@ -32,7 +44,7 @@ function App() {
     return () => clearInterval(interval);
   }, [timerOn]);
 
-  const getTime = (time:any) => {
+  const getTime = (time:number) => {
     return `${("0" + Math.floor((time / 60000) % 60)).slice(-2)}:${("0" + Math.floor((time / 1000) % 60)).slice(-2)}:${("0" + ((time / 10) % 100)).slice(-2)}`
   }
 
@@ -41,10 +53,10 @@ function App() {
       <Main>
         <SwitchContainer theme={themes[theme]} changeMode={()=>{changeMode(setChecked,checked,theme,setTheme)}} checked={checked}/>
         <Timer>
-          {data.map((checkpoint:string) => <CheckPoints>{checkpoint}</CheckPoints>)}
-          <Button size="large" variant="contained" color="primary" startIcon={<PlayArrow/>} onClick={()=>{
+          <CheckPoints>{getTime(acumulated)}</CheckPoints>
+          <Button size="large" variant="contained" color="secondary" startIcon={<PlayArrow/>} onClick={()=>{
             if(time!==0){
-              setData([...data,getTime(time)])
+              putTime(time+acumulated)
             }
             setTime(0)
             setTimerOn(!timerOn)
@@ -65,7 +77,7 @@ const Main = styled.div`
 
 const CheckPoints = styled.h1`
   font-size:3em;
-  margin:10px;
+  margin:30px;
   color:${props => props.theme.crono};
 `;
 const Timer = styled.div`
