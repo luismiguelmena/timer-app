@@ -23,6 +23,10 @@ or
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
+or
+
+You can see here: (https://jolly-bartik-395cd1.netlify.app/)
+
 Runs the backend in the development mode.\
 Open [http://localhost:4000](http://localhost:4000) to view it in the browser.
 
