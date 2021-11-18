@@ -2,7 +2,7 @@ import axios from "axios";
 
 const putTime = (data: Object) =>
   new Promise((resolve, reject) => {
-    const url = "http://localhost:4000/put";
+    const url = "https://time-backend.herokuapp.com/put";
 
     axios
       .put(url, { time: data })
